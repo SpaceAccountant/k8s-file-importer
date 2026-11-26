@@ -188,7 +188,6 @@ echo "Waiting for importer pod to become Ready"
 kubectl wait --for=condition=Ready pod/importer -n "${NAMESPACE}"
 if [[ "${ERR}" -ne 0 ]]
 then
-	cleanup_pod
 	exit "${ERR}"
 fi
 
@@ -205,13 +204,10 @@ do
 	ERR=$?
 	if [[ "${ERR}" -ne 0 ]]
 	then
-		cleanup_pod
 		exit "${ERR}"
 	fi
 done
 
 echo "Done"
 kubectl exec -n "${NAMESPACE}" importer -- ls -la /pvc
-
-cleanup_pod
 
