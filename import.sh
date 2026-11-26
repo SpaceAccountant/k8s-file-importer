@@ -13,6 +13,7 @@ usage() {
 	echo -e "  --image IMAGE  The image to use for the importer pod (must have sleep available; default is docker.io/alpine:latest)"
 	echo -e "  --uid UID      The user ID to run the importer pod as (default is 65535)"
 	echo -e "  --gid GID      The group ID to run the importer pod as (default is 65535)"
+	echo -e "  --tar          Tranfer files using tar (the tar binary must be present in the image)"
 	echo -e "  --wipe         Fully wipes the PersistentVolumeClaim before copying files over"
 	echo    ""
 	echo    "Arguments"
@@ -31,6 +32,7 @@ fi
 IMAGE="docker.io/alpine:latest"
 RUN_AS_UID=65535
 RUN_AS_GID=65535
+TAR="false"
 WIPE="false"
 
 while true
@@ -70,6 +72,10 @@ do
 				exit 1
 			fi
 			shift
+			;;
+		"--tar")
+			shift
+			TAR="true"
 			;;
 		"--wipe")
 			shift
@@ -200,7 +206,12 @@ fi
 for file in $@
 do
 	echo "Copying ${file}"
-	kubectl cp -c importer -n "${NAMESPACE}" "${file}" "importer:/pvc/$(basename "${file}")"
+	if [[ "${TAR}" = "true" ]]
+	then
+		tar -C "$(dirname "${file}")" -cf - "$(basename "${file}")" | kubectl exec -i -c importer -n "${NAMESPACE}" importer -- tar -xf - -C "/pvc/"
+	else
+		kubectl cp -c importer -n "${NAMESPACE}" "${file}" "importer:/pvc/$(basename "${file}")"i
+	fi
 	ERR=$?
 	if [[ "${ERR}" -ne 0 ]]
 	then
