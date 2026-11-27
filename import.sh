@@ -10,6 +10,7 @@ usage() {
 	echo    ""
 	echo    "Options"
 	echo    "----"
+	echo -e "  --help         Prints this usage text and exits"
 	echo -e "  --image IMAGE  The image to use for the importer pod (must have sleep available; default is docker.io/alpine:latest)"
 	echo -e "  --uid UID      The user ID to run the importer pod as (default is 65535)"
 	echo -e "  --gid GID      The group ID to run the importer pod as (default is 65535)"
@@ -38,6 +39,10 @@ WIPE="false"
 while true
 do
 	case "$1" in
+		"--help")
+			usage $0
+			exit 0
+			;;
 		"--image")
 			shift
 			IMAGE="$1"
